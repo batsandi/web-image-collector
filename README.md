@@ -17,7 +17,7 @@ cd web-image-collector
 rename `env.dev.sample` to `.env.dev` and optionally
 
 ```
-mv .env.dev .env.dev.sample
+mv .env.dev.sample .env.dev
 ```
 
 >[!NOTE]
