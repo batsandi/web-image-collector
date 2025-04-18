@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:17
+    container_name: collector_postgres_db
+    env_file:
+      - .env.dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Windows randomly excluded port 5432 for me, so I had to use 5608 as aquick fix
+      - "5608:5432"
+
+  app:
+    build: .
+    container_name: collector_app
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+      - ./screenshots:/app/screenshots
+    env_file:
+      - .env.dev
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
