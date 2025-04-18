@@ -1,15 +1,9 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
-from enum import Enum
-from sqlalchemy import Enum as SQLAlchemyEnum
 
 from database import Base
 
-
-class RunStatus(Enum):
-    RUNNING = "RUNNING"
-    SUCCESSFUL = "SUCCESSFUL"
-    FAILED = "FAILED"
+# TODO: decided to omit the run status for simplicity. Add later.
 
 
 class ScreenshotRun(Base):
@@ -17,14 +11,13 @@ class ScreenshotRun(Base):
 
     id = Column(String, primary_key=True)
     start_url = Column(Text, nullable=False)
-    status = Column(SQLAlchemyEnum(RunStatus, name="run_status_enum"))
 
     screenshots = relationship("Screenshots",
                                back_populates="run",
                                cascade="all, delete-orphan")
 
 
-class Screenshots(Base):
+class Screenshot(Base):
     __tablename__ = "screenshots"
 
     id = Column(Integer, primary_key=True)
