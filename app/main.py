@@ -15,6 +15,10 @@ class CaptureScreenshotResponse(BaseModel):
     run_id: str
 
 
+class ReturnScreenshotRequest(BaseModel):
+    run_id: str
+
+
 class ReturnScreenshotResponse(BaseModel):
     run_id: str
     status: str
