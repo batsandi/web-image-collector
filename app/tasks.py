@@ -15,7 +15,7 @@ from crud import create_screenshot
 # TODO: Add logging to file and notifications on failures for example
 class Collector:
     # TODO: redundant naming of app/app from workdir + app dir, consider renaming
-    SCREENSHOT_DIR = "app/app/screenshots"
+    SCREENSHOT_DIR = "/screenshots"
 
     def __init__(
             self,

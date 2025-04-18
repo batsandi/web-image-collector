@@ -19,7 +19,7 @@ services:
       - "8000:8000"
     volumes:
       - ./app:/app
-      - ./screenshots:/app/screenshots
+      - ./screenshots:/screenshots
     env_file:
       - .env.dev
     command: sh -c "python prestart.py && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"

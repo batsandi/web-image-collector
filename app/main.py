@@ -36,6 +36,7 @@ async def is_alive():
     return StatusResponse(status="alive")
 
 
+# TODO: improve response and handling for wrong urls, or other issues.
 @app.post(
     "/screenshots",
     response_model=CaptureScreenshotResponse,
@@ -62,27 +63,14 @@ async def capture_screenshots(
         raise HTTPException(status_code=500, detail=f"Database error creating run: {e}")
 
     # Add the Selenium task to background processing
-    print('Preparing background task')
-    # background_tasks.add_task(
-    #     run_collector_task,
-    #     run_id=run_id,
-    #     start_url=str(request.start_url),
-    #     num_links=request.n_links
-    # )
-
-    run_collector_task(
+    background_tasks.add_task(
+        run_collector_task,
         run_id=run_id,
         start_url=str(request.start_url),
         num_links=request.n_links
     )
 
-
     return CaptureScreenshotResponse(run_id=run_id)
-
-
-# @app.get("/screenshot/{run_id}")
-# async def return_screenshots(run_id: str):
-#     return {"screenshots": ['list of screenshots']}
 
 
 @app.get(
@@ -93,12 +81,8 @@ async def return_screenshots(
     run_id,
     db=Depends(get_db)
 ):
-    # Check if the run itself exists (assuming crud.get_screenshot_run exists)
-    # run = crud.get_screenshot_run(db=db, run_id=run_id) # Assumes you add this to crud.py
-    # if not run:
-    #   raise HTTPException(status_code=404, detail=f"Run ID '{run_id}' not found.")
-
     # Fetch screenshot records associated with the run_id
+    # TODO: move storage to shared location so that returned uri's can be accessible by client
     db_screenshots = get_screenshots_for_run(db=db, run_id=run_id)
     filepaths = [s.filepath for s in db_screenshots] if db_screenshots else None
 
