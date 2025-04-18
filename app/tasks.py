@@ -1,12 +1,11 @@
 import os
 import time
-from urllib.parse import urljoin, urlparse
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 
-from .database import SessionLocal
+from database import SessionLocal
 from crud import create_screenshot
 
 
@@ -32,14 +31,14 @@ class Collector:
             self.run_screenshot_dir = os.path.join(self.SCREENSHOT_DIR, self.run_id)
             os.makedirs(self.run_screenshot_dir, exist_ok=True)
         return self.run_screenshot_dir
-    
+
     def get_driver(self):
         if self.driver is None:
             options = ChromeOptions()
             options.add_argument("--headless")
             self.driver = webdriver.Chrome(options=options)
         return self.driver
-    
+
     # maybe just use driver.get
     def go_to_url(self, url):
         self.driver.get(url)
@@ -96,3 +95,9 @@ class Collector:
             if self.db:
                 self.db.close()
             print(f"[{self.run_id}] Database session closed.")
+
+
+# A top level function to instantiate and start the collector class
+def run_collector_task(run_id: str, start_url: str, num_links: int):
+    collector = Collector(run_id, start_url, num_links)
+    collector.crawl_and_capture()
