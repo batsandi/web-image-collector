@@ -12,7 +12,7 @@ class ScreenshotRun(Base):
     id = Column(String, primary_key=True)
     start_url = Column(Text, nullable=False)
 
-    screenshots = relationship("Screenshots",
+    screenshots = relationship("Screenshot",
                                back_populates="run",
                                cascade="all, delete-orphan")
 

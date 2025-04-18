@@ -49,9 +49,9 @@ async def capture_screenshots(
     # TODO: use uuid for example to generate run_ids
     # Perfectly aware this is not a robust solution
     # I chose this for simplicity to have a simple input for the GET route
-    run_id = randint(1000, 9999)
+    run_id = str(randint(1000, 9999))  # casting str to mimic a uuid type
 
-  # Create the run record in the database
+    # Create the run record in the database
     try:
         create_screenshot_run(
             db=db,
@@ -62,11 +62,20 @@ async def capture_screenshots(
         raise HTTPException(status_code=500, detail=f"Database error creating run: {e}")
 
     # Add the Selenium task to background processing
-    background_tasks.add_task(
-        run_collector_task,
+    print('Preparing background task')
+    # background_tasks.add_task(
+    #     run_collector_task,
+    #     run_id=run_id,
+    #     start_url=str(request.start_url),
+    #     num_links=request.n_links
+    # )
+
+    run_collector_task(
+        run_id=run_id,
         start_url=str(request.start_url),
         num_links=request.n_links
     )
+
 
     return CaptureScreenshotResponse(run_id=run_id)
 
