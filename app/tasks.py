@@ -4,6 +4,7 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from urllib.parse import urljoin
 
 from database import SessionLocal
@@ -56,7 +57,9 @@ class Collector:
             options.add_argument(f"--user-data-dir={user_data_path}")
             print(f"[{self.run_id}] Using user data dir: {user_data_path}")
 
-            self.driver = webdriver.Chrome(options=options)
+            service = Service("/usr/bin/chromedriver")
+
+            self.driver = webdriver.Chrome(service=service, options=options)
 
         return self.driver
 
