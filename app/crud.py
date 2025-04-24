@@ -1,5 +1,5 @@
 
-from models import Screenshot, ScreenshotRun
+from app.models import Screenshot, ScreenshotRun
 
 
 # Start a new run
