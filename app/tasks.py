@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -7,8 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from urllib.parse import urljoin
 
-from database import SessionLocal
-from crud import create_screenshot
+from .database import SessionLocal
+from .crud import create_screenshot
+
+logger = logging.getLogger(__name__)
 
 
 # TODO: Add functionality to close popups on page visit
@@ -33,15 +36,16 @@ class Collector:
         self.driver = None
 
     def get_run_screenshot_dir(self):
-        print(f'run_screenshot_dir: {self.run_screenshot_dir}')
         if self.run_screenshot_dir is None:
-            print(self.SCREENSHOT_DIR, self.run_id, self.run_screenshot_dir)
             self.run_screenshot_dir = os.path.join(self.SCREENSHOT_DIR, self.run_id)
             os.makedirs(self.run_screenshot_dir, exist_ok=True)
+        logger.info(f"[Run {self.run_id}] Created screenshot directory: {self.run_screenshot_dir}")
         return self.run_screenshot_dir
 
     def get_driver(self):
+        logger.info(f"[{self.run_id}] Looking for WebDriver...")
         if self.driver is None:
+            logger.info(f"[{self.run_id}] WebDriver not found, creating a new one...")
             # copy pasted solution for chromium error
             options = ChromeOptions()
             options.add_argument("--headless")
@@ -60,11 +64,14 @@ class Collector:
             service = Service("/usr/bin/chromedriver")
 
             self.driver = webdriver.Chrome(service=service, options=options)
+            logger.info(f"[{self.run_id}] WebDriver created successfully.")
 
+        logger.info(f"[{self.run_id}] WebDriver is ready.")
         return self.driver
 
     # maybe just use driver.get?
     def go_to_url(self, url):
+        logger.info(f"[{self.run_id}] Navigating to URL: {url}")
         self.driver.get(url)
         # Wait for page to load for 2 sec - not ideal
         # TODO: implicit wait/selenium method to wait  better
@@ -75,7 +82,7 @@ class Collector:
             self.run_screenshot_dir,
             f"{n_link}.png")
         )
-        print(f"Saved screenshot: {n_link}.png")
+        logger.info(f"[{self.run_id}] Screenshot captured for URL: {self.driver.current_url}, number of link: {n_link}")
         create_screenshot(
             db=self.db,
             run_id=self.run_id,
@@ -83,6 +90,7 @@ class Collector:
         )
 
     def get_links_to_follow(self):
+        logger.info(f"[{self.run_id}] Extracting links from the page...")
         elements = self.driver.find_elements(By.TAG_NAME, 'a')
         found_urls = set()
         for elem in elements:
@@ -95,11 +103,12 @@ class Collector:
                         self.links_to_follow.append(absolute_url)
                     else:
                         break
-        print(f"Identified {len(self.links_to_follow)} unique links to follow.")
+        logger.info(f"[{self.run_id}] Found {len(self.links_to_follow)} links to follow.")
 
     def crawl_and_capture(self):
         # TODO: Improve rrror handling
         # the try except here is more cosmetic and to ensure db session closing
+        logger.info(f"[{self.run_id}] Starting crawl and capture processing...")
         try:
             self.get_run_screenshot_dir()
             self.get_driver()
@@ -107,21 +116,22 @@ class Collector:
             self.capture_screenshot("0")
             self.get_links_to_follow()
             for i, link_url in enumerate(self.links_to_follow):
-                print(f"{i+1}/{len(self.links_to_follow)}")
+                logger.info(f"[{self.run_id}] Navigating to link {i+1}/{len(self.links_to_follow)}: {link_url}")
                 self.go_to_url(link_url)
                 self.capture_screenshot(i+1)
-            print(f"[{self.run_id}] Task processing completed.")
+            logger.info(f"[{self.run_id}] Finished capturing screenshots.")
 
         except Exception as e:
-            print(f"[{self.run_id}] Task failed with error: {e}")
+            logger.error(f"[{self.run_id}] Task failed with error: {e}")
             raise e
 
         finally:
             if self.driver:
+                logger.info(f"[{self.run_id}] Closing WebDriver...")
                 self.driver.quit()
             if self.db:
+                logger.info(f"[{self.run_id}] Closing database session...")
                 self.db.close()
-            print(f"[{self.run_id}] DB & Driver closed.")
 
 
 # A top level function to instantiate and start the collector class

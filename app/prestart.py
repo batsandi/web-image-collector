@@ -1,8 +1,7 @@
 import time
-from database import engine, Base
-from models import ScreenshotRun, Screenshot
 
-print("--- Running prestart script ---")
+from .database import engine, Base
+from .models import ScreenshotRun, Screenshot
 
 # # TODO: Handle wait for db better
 # Another dummy wait to improve chances

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from .database import Base
 
 # TODO: decided to omit the run status for simplicity. Add later.
 
