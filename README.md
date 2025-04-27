@@ -1,5 +1,5 @@
 # web-image-collector
-A simple API service collecting images from a selected website. It includes a docker compose project with two containers for the FastAPI app and a standard PostgreSQL. The service uses Selenium to crawl websites.
+A simple API service collecting images from a selected website. It includes a docker compose project with two containers for the FastAPI app and a standard PostgreSQL. The service uses Selenium to crawl websites. Logging with Grafana Loki.
 
 # Run Locally
 Requires docker and docker compose
@@ -46,6 +46,35 @@ __Full API docs available at__:
 
 http://127.0.0.1:8000/docs
 
+
+## Logging
+Logging is implemented using python's built-in `logging` and routes all logs to `stdout` of the docker compose project. The  Promtail, Loki, Grafana containers are responsible for scraping, pushing and displaying logs respectively. Accessible on http://localhost:3001 . For this to work, the host must also modify the `daemon.json` to enable the loki logging driver by adding
+
+```
+{
+  "debug": true,
+  "log-driver": "loki",
+  "log-opts": {
+    "loki-url": "https://localhost:3001/loki/api/v1/push",
+    "loki-batch-size": "400"
+  }
+}
+```
+
+The host also needs to have installed the loki docker logging driver plugin utself
+
+```
+docker plugin install grafana/loki-docker-driver:3.3.2-arm64 --alias loki --grant-all-permissions
+```
+
+## Testing
+Includes tests using `pytest`, currently a single unit test as POC. Further test will be added to:
+- Unit
+  - Each self-contained function/method in the app
+- Integration
+  - interactions between the API, DB, Collector
+- End-to-end
+  - Mock a complete run of the service from initial request to served results
 
 ## Action Plan
 Using your favourite python framework implement a python service, responsible for collecting website screenshots (using puppeteer or playwright or selenium).
