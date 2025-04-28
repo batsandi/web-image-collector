@@ -67,6 +67,12 @@ The host also needs to have installed the loki docker logging driver plugin utse
 docker plugin install grafana/loki-docker-driver:3.3.2-arm64 --alias loki --grant-all-permissions
 ```
 
+Ah, also, the datasource needs to be added to Grafana. From the Grafana GUI accessible at `:3001`
+
+## Monitoring
+
+A simple Prometheus integration which tracks itself, as well as total number of requests made to the FastAPI app. The datasource also needs to be added to Grafana .
+
 ## Testing
 Includes tests using `pytest`, currently a single unit test as POC. Further test will be added to:
 - Unit

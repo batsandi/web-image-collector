@@ -4,6 +4,7 @@ from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from pydantic import HttpUrl, BaseModel
 from random import randint
 import logging
+from prometheus_client import make_asgi_app, Counter
 
 from .crud import create_screenshot_run, get_screenshots_for_run
 from .database import get_db
@@ -17,8 +18,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# TODO: Sqap for prometheus-fastapi-instrumentator for more stuff out the box
+total_requests_counter = Counter('screenshots_requests_total', 'The total number of requests made')
+
 # Instantiate the Fastapi app
 app = FastAPI(title="Collector Service")
+
+# Create the prometheus metrics endpoint
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
 
 logger.info("Starting Collector Service...")
 
@@ -45,6 +53,7 @@ class StatusResponse(BaseModel):
 
 @app.get("/isalive", response_model=StatusResponse)
 async def is_alive():
+    total_requests_counter.inc()
     logger.info("Health check endpoint called")
     return StatusResponse(status="alive")
 
@@ -63,6 +72,7 @@ async def capture_screenshots(
     # TODO: use uuid for example to generate run_ids
     # Perfectly aware this is not a robust solution
     # I chose this for simplicity to have a simple input for the GET route
+    total_requests_counter.inc()
     run_id = str(randint(1000, 9999))  # casting str to mimic a uuid type
     logger.info(f"Starting Run with ID: {run_id}")
 
@@ -98,6 +108,7 @@ async def return_screenshots(
     run_id,
     db=Depends(get_db)
 ):
+    total_requests_counter.inc()
     # Fetch screenshot records associated with the run_id
     # TODO: move storage to shared location so that returned uri's can be accessible by client
     logger.info(f"Fetching screenshots for run_id: {run_id}")
